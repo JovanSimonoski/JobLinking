@@ -1,0 +1,99 @@
+﻿@model IEnumerable<JobLinking.Models.Company>
+@using Microsoft.AspNet.Identity
+@{
+    ViewBag.Title = "Index";
+}
+<style>
+    img {
+        border-radius: 25% 10%;
+    }
+</style>
+<h2>Companies</h2>
+
+
+<table class="table" id="companies-table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.City)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Logo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.About)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.City)
+                </td>
+                <td>
+                    <img src="@item.Logo" style="height:120px;" />
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.About)
+                </td>
+                <td>
+                    @{
+                        var companyId = item.UserIdRelation;
+                        var userId = User.Identity.GetUserId();
+                    }
+
+                    @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id })
+                        <button data-company-id="@item.Id" class="btn btn-danger js-delete">Delete</button>
+                    }
+                    @Html.ActionLink("Details", "Details", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+                var table = $("#companies-table").DataTable();
+                $(".js-delete").on("click", function () {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/Companies/Delete/" + button.attr("data-company-id"),
+                                method: "GET",
+                                success: function () {
+                                    table.row(button.parents("tr")).remove().draw();
+                                },
+                                error: function (err) {
+                                    console.log(err);
+                                }
+                            });
+                        }
+                    })
+                })
+            })
+            $(function () {
+                $("#companies-table img").mouseover(function () {
+                    $(this).animate({ height: '+=25', width: '+=25' });
+                });
+            });
+            $(function () {
+                $("#companies-table img").mouseout(function () {
+                    $(this).animate({ height: '-=25', width: '-=25' });
+                });
+            });
+    </script>
+}

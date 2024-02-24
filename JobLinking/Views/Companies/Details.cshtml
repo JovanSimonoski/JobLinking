@@ -1,0 +1,175 @@
+﻿@model JobLinking.Models.Company
+@using Microsoft.AspNet.Identity
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<style>
+    img {
+        border-radius: 25% 10%;
+    }
+
+    dt {
+        font-size: 15px;
+    }
+
+    dd {
+        font-size: 25px;
+    }
+
+    #profile {
+        max-width: 40%;
+        float: left;
+    }
+
+    #jobs-table {
+        max-width: 60%;
+        float: right;
+    }
+
+    #edit-paragraph {
+        clear: both;
+    }
+
+    #button-apply {
+        font-size: 20px;
+    }
+</style>
+
+<h2>@Model.Name</h2>
+
+<div id="profile">
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+
+        </dt>
+        
+        <dd>
+            <img src="@Model.Logo" style="height:250px;" />
+        </dd>
+
+        <hr />
+        <dt>
+            @Html.DisplayNameFor(model => model.City)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.City)
+        </dd>
+
+        <hr />
+        <dt>
+            @Html.DisplayNameFor(model => model.About)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.About)
+        </dd>
+
+        <hr />
+    </dl>
+</div>
+<div id="jobs-table">
+    <h2>All Job Listings:</h2>
+    @{
+        var companyId = Model.UserIdRelation;
+        var userId = User.Identity.GetUserId();
+    }
+<span id="button-apply">
+    @if (companyId.Equals(userId))
+    {
+        @Html.ActionLink("Create a Job Listing", "Create", "JobAdvertisements")
+    }
+</span>
+    <table class="table" id="jobad-table">
+        <thead>
+            <tr>
+                <th>
+                    Job Position
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    City
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.JobAdvertisements)
+            {
+                <tr>
+                    <td>
+                        @item.JobTitle
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        @item.City
+                    </td>
+                    <td>
+                        @if (User.IsInRole("JobSeeker") || User.IsInRole("Admin"))
+                        {
+                            @Html.ActionLink("Apply", "Apply", "JobAdvertisements", new { id = item.Id }, new {})
+                        }
+                        @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+                        {
+                            @Html.ActionLink("Edit", "Edit", "JobAdvertisements", new { id = item.Id }, new { });
+                            <button data-jobadvertisement-id="@item.Id" class="btn btn-danger js-delete">Delete</button>
+                        }
+                        @Html.ActionLink("Details", "Details", "JobAdvertisements", new { id = item.Id }, new { })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<p id="edit-paragraph">
+    @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+    {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.Id })
+    }
+
+    |
+    @Html.ActionLink("Back to List", "Index")
+</p>
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            var table = $("#jobad-table").DataTable();
+            $(".js-delete").on("click", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure?", function (result) {
+                    if (result) {
+                        $.ajax({
+                            url: "/JobAdvertisements/Delete/" + button.attr("data-jobadvertisement-id"),
+                            method: "GET",
+                            success: function () {
+                                table.row(button.parents("tr")).remove().draw();
+                            },
+                            error: function (err) {
+                                console.log(err);
+                            }
+                        });
+                    }
+                })
+            })
+        })
+        $(function () {
+            $("#companies-table img").mouseover(function () {
+                $(this).animate({ height: '+=25', width: '+=25' });
+            });
+        });
+        $(function () {
+            $("#companies-table img").mouseout(function () {
+                $(this).animate({ height: '-=25', width: '-=25' });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,126 @@
+﻿@model IEnumerable<JobLinking.Models.JobSeeker>
+@using Microsoft.AspNet.Identity
+
+@{
+    ViewBag.Title = "Index";
+}
+@{
+    var userId = User.Identity.GetUserId();
+}
+
+<style>
+    img {
+        border-radius: 25% 10%;
+    }
+</style>
+<h2>Job Seekers</h2>
+
+
+<table class="table" id="jobseekers-table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Surname)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Image)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Age)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.City)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EducationLevel)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Education)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.About)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Surname)
+                </td>
+                <td>
+                    <img src="@item.Image" style="height:120px;" />
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Age)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.City)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EducationLevel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Education)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.About)
+                </td>
+                <td>
+                    @{
+                        var companyId = item.UserIdRelation;
+                    }
+                    @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.Id })
+                        <button data-jobseeker-id="@item.Id" class="btn btn-danger js-delete">Delete</button>
+                    }
+                    @Html.ActionLink("Details", "Details", new { id = item.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+	        $(document).ready(function () {
+                var table = $("#jobseekers-table").DataTable();
+                $(".js-delete").on("click", function () {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure?", function (result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/JobSeekers/Delete/" + button.attr("data-jobseeker-id"),
+                                method: "GET",
+                                success: function () {
+                                    table.row(button.parents("tr")).remove().draw();
+                                },
+                                error: function (err) {
+                                    console.log(err);
+                                }
+                            });
+                        }
+                    })
+                })
+            })
+            $(function () {
+                $("#jobseekers-table img").mouseover(function () {
+                    $(this).animate({ height: '+=25', width: '+=25' });
+                });
+            });
+            $(function () {
+                $("#jobseekers-table img").mouseout(function () {
+                    $(this).animate({ height: '-=25', width: '-=25' });
+                });
+            });
+    </script>
+}

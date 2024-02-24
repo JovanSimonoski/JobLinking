@@ -1,0 +1,156 @@
+﻿@model JobLinking.Models.JobSeeker
+@using Microsoft.AspNet.Identity
+
+@{
+    ViewBag.Title = "Details";
+}
+<style>
+    img {
+        border-radius: 25% 10%;
+    }
+    dt {
+        font-size: 15px;
+    }
+    dd{
+        font-size: 25px;
+    }
+    #profile{
+        max-width: 40%;
+        float: left;
+    }
+    #jobs-table{
+        max-width: 60%;
+        float: right;
+    }
+    #edit-paragraph{
+        clear: both;
+    }
+    #button-apply{
+        font-size:20px;
+    }
+</style>
+
+<h2>@Model.Name @Model.Surname</h2>
+
+<div id="profile">
+    <hr />
+    <dl class="dl-horizontal">
+        <dd>
+            <img src="@Model.Image" style="height: 250px;" />
+        </dd>
+
+        <hr />
+        <dt>
+            @Html.DisplayNameFor(model => model.Age)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Age)
+        </dd>
+        <hr />
+        <dt>
+            @Html.DisplayNameFor(model => model.City)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.City)
+        </dd>
+        <hr />
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EducationLevel)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EducationLevel)
+        </dd>
+        <hr />
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Education)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Education)
+        </dd>
+
+        <hr />
+        <dt>
+            @Html.DisplayNameFor(model => model.About)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.About)
+        </dd>
+
+        <hr />
+    </dl>
+</div>
+<div id="jobs-table">
+    <h2>All Jobs Applied On:</h2>
+    @{
+        var companyId = Model.UserIdRelation;
+        var userId = User.Identity.GetUserId();
+    }
+
+<span id="button-apply">
+    @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+    {
+        @Html.ActionLink("Look for a Job to Apply", "Index", "JobAdvertisements")
+    }
+</span>
+    <table class="table" id="jobadvertisements-table">
+        <thead>
+            <tr>
+                <th>
+                    Job Position
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    City
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.JobAdvertisements)
+            {
+                <tr>
+                    <td>
+                        @item.JobTitle
+                    </td>
+                    <td>
+                        @item.Description
+                    </td>
+                    <td>
+                        @item.City
+                    </td>
+                    <td>
+                        @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+                        {
+                            @Html.ActionLink("Delete Application", "DeleteApplication", new { JobSeekerId = Model.Id, JobAdvertisementId = item.Id })
+                        }
+                        @Html.ActionLink("Details", "Details", "JobAdvertisements", new { id = item.Id }, new { })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<p id="edit-paragraph">
+    @if (companyId.Equals(userId) || User.IsInRole("Admin"))
+    {
+        @Html.ActionLink("Edit", "Edit", new { id = Model.Id })
+    }
+    @Html.ActionLink("Back to List", "Index")
+</p>
+
+@section scripts{
+    <script>
+	        $(document).ready(function () {
+                var table = $("#jobadvertisements-table").DataTable();
+	        })
+    </script>
+}
